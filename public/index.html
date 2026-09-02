@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>POS PAPER SPECIALIST</title>
+<style>
+body{font-family: sans-serif; padding:20px; background:#f5f5f5}
+.card{background:white; padding:15px; border-radius:10px; margin-bottom:10px; box-shadow:0 2px 5px #0001}
+button{background:#16a34a; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer}
+input{padding:8px; margin:3px; border-radius:6px; border:1px solid #ccc}
+</style>
+</head>
+<body>
+<h1>POS-PAPER-SPECIALIST</h1>
+
+<div class="card">
+<h3>Add New Paper Roll / Product</h3>
+<input id="name" placeholder="Name e.g. Thermal Roll 80mm">
+<input id="type" placeholder="Type e.g. Thermal">
+<input id="size" placeholder="Size e.g. 80x80">
+<input id="price" type="number" placeholder="Price">
+<input id="stock" type="number" placeholder="Stock">
+<input id="gsm" type="number" placeholder="GSM e.g. 48">
+<button onclick="addProduct()">Add Product</button>
+</div>
+
+<div class="card">
+<h3>Stock</h3>
+<div id="products"></div>
+</div>
+
+<div class="card">
+<h3>POS Checkout</h3>
+<input id="sell_id" type="number" placeholder="Product ID">
+<input id="sell_qty" type="number" placeholder="Qty">
+<button onclick="sell()">SELL & PRINT RECEIPT</button>
+<p id="receipt"></p>
+</div>
+
+<script>
+async function load(){
+  let res = await fetch('/api/products');
+  let data = await res.json();
+  document.getElementById('products').innerHTML = data.map(p=> 
+    `<div><b>[${p.id}] ${p.name}</b> - ${p.size} - ${p.price} RWF - Stock: ${p.stock}</div>`
+  ).join('');
+}
+async function addProduct(){
+  let body = {
+    name: name.value, type: type.value, size: size.value,
+    price: parseFloat(price.value), stock: parseInt(stock.value), gsm: parseInt(gsm.value)
+  };
+  await fetch('/api/products',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  load();
+}
+async function sell(){
+  let body = {product_id: parseInt(sell_id.value), qty: parseInt(sell_qty.value)};
+  let res = await fetch('/api/sell',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  let data = await res.json();
+  document.getElementById('receipt').innerText = data.receipt || data.error;
+  load();
+}
+load();
+</script>
+</body>
+</html>
