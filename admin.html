@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin - POS PAPER SPECIALIST</title>
+<style>
+body{font-family:Arial;background:#0f172a;color:white;margin:0;padding:20px}
+.card{background:#1e293b;padding:20px;border-radius:12px;margin-top:15px}
+input{padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:white;margin:5px}
+button{background:#16a34a;color:white;border:none;padding:10px 15px;border-radius:8px;cursor:pointer;font-weight:bold;margin:5px}
+.product{background:#0f172a;padding:12px;border-radius:8px;margin:6px 0;display:flex;justify-content:space-between;border:1px solid #334155}
+.low{color:#ef4444;font-weight:bold}
+a{color:#4ade80}
+</style>
+</head>
+<body>
+<div style="max-width:800px;margin:0 auto">
+<h1>🔒 Admin - POS PAPER SPECIALIST</h1>
+<p><a href="./">← Back to Customer Website</a> | This is PRIVATE - Only you should see this link: <br><b>https://pacino37.github.io/POS-PAPER-SPECIALIST/admin.html</b></p>
+
+<div class="card"><h3>➕ Add New Stock</h3>
+<input id="name" placeholder="Name e.g. 80x80 Thermal">
+<input id="size" placeholder="Size e.g. 80x80">
+<input id="price" type="number" placeholder="Price GHS">
+<input id="stock" type="number" placeholder="Qty">
+<button onclick="addProduct()">Add</button>
+</div>
+
+<div class="card"><h3>📦 Current Stock (Saved in your browser)</h3>
+<div id="list"></div>
+<button onclick="if(confirm('Clear all stock?')){localStorage.clear(); load();}" style="background:#ef4444;margin-top:15px">Clear All</button>
+</div>
+
+<div class="card"><h3>💰 Make a Sale</h3>
+<input id="sell_id" type="number" placeholder="Product ID">
+<input id="sell_qty" type="number" placeholder="Qty sold">
+<input id="customer" placeholder="Customer Shop">
+<button onclick="sell()">Sell & Reduce Stock</button>
+<p id="receipt" style="color:#4ade80;font-weight:bold;margin-top:10px"></p>
+</div>
+
+<div class="card" style="background:#172554"><h3>📊 Today's Summary</h3>
+<p id="summary">No sales yet today</p>
+<p>💡 <b>Tip:</b> This admin works without a server - it saves on your phone/computer. For your full server version with database, use your Codespace: run <code>npm start</code> and open port 3000.</p>
+</div>
+
+</div>
+<script>
+let products = JSON.parse(localStorage.getItem('pos_products') || '[{"id":1,"name":"Thermal Roll","size":"80x80","price":15,"stock":100},{"id":2,"name":"Thermal Roll","size":"57x40","price":8,"stock":200},{"id":3,"name":"Thermal Roll","size":"57x50","price":9,"stock":150},{"id":4,"name":"Thermal Roll","size":"57x30","price":6,"stock":180}]');
+let sales = JSON.parse(localStorage.getItem('pos_sales') || '[]');
+
+function save(){ localStorage.setItem('pos_products', JSON.stringify(products)); localStorage.setItem('pos_sales', JSON.stringify(sales)); }
+
+function load(){
+  document.getElementById('list').innerHTML = products.map(p=>`
+    <div class="product">
+      <span><b>ID ${p.id}</b> - ${p.name} ${p.size} - GHS ${p.price}</span>
+      <span class="${p.stock<20?'low':''}">Stock: ${p.stock} ${p.stock<20?' ⚠️ LOW - ORDER!':''} <button onclick="del(${p.id})" style="background:#ef4444;padding:3px 8px;font-size:12px">X</button></span>
+    </div>
+  `).join('');
+  let total = sales.reduce((s,a)=>s+(a.qty*a.price),0);
+  document.getElementById('summary').innerText = `Sales today: ${sales.length} transactions | Total: GHS ${total}`;
+}
+function addProduct(){
+  const name=document.getElementById('name').value, size=document.getElementById('size').value, price=parseFloat(document.getElementById('price').value), stock=parseInt(document.getElementById('stock').value);
+  if(!name||!size||!price||!stock) return alert('Fill all fields');
+  const id = products.length ? Math.max(...products.map(p=>p.id))+1 : 1;
+  products.push({id,name,size,price,stock}); save(); load();
+  document.getElementById('name').value='';document.getElementById('size').value='';document.getElementById('price').value='';document.getElementById('stock').value='';
+}
+function del(id){ products = products.filter(p=>p.id!==id); save(); load(); }
+function sell(){
+  const id=parseInt(document.getElementById('sell_id').value), qty=parseInt(document.getElementById('sell_qty').value), customer=document.getElementById('customer').value;
+  const p = products.find(x=>x.id===id);
+  if(!p) return alert('Product ID not found');
+  if(p.stock < qty) return alert('Not enough stock!');
+  p.stock -= qty;
+  sales.push({id, qty, price:p.price, customer, time:new Date().toLocaleString()});
+  save(); load();
+  document.getElementById('receipt').innerText = `✅ Sold ${qty} x ${p.name} ${p.size} to ${customer} for GHS ${qty*p.price}. Remaining stock: ${p.stock}`;
+}
+load();
+</script>
+</body>
+</html>
