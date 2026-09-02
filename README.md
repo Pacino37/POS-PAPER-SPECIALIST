@@ -1,2 +1,2 @@
-# POS-PAPER-SPECIALIST
-I supply POS receipt rolls to businesses in Accra and make sure you never run out!
+    # POS-PAPER-SPECIALIST
+    POS system for paper specialist store - sales, stock, receipts.
